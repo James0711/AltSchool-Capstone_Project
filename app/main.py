@@ -13,10 +13,13 @@ from app.routers.comments import comment_router
 from app.routers.movies import movie_router
 from app.routers.ratings import rating_router
 
-
+# Create all database tables
 Base.metadata.create_all(bind=engine)
 
+# Initialize FastAPI app
 app = FastAPI()
+
+# Add middleware for logging
 app.add_middleware(BaseHTTPMiddleware, dispatch=log_middleware)
 logger.info('Starting API....')
 
@@ -25,6 +28,7 @@ logger.info('Starting API....')
 async def index():
     return {'message': 'Welcome to Movie API'}
 
+# Include routers for different resources
 app.include_router(user_router, prefix="/users", tags=["Users"])
 app.include_router(
     comment_router, prefix="/movies/comments", tags=["Comments"])
