@@ -11,16 +11,19 @@ from dotenv import load_dotenv
 from app.crud import user_crud_service
 from app.database import SessionLocal, get_db
 
+# Load environment variables from .env file
 load_dotenv()
 
+# Retrieve configuration values
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = os.getenv("ALGORITHM")
 ACCESS_TOKEN_EXPIRES_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRES_MINUTES", "30"))
 
+# Password hashing context
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
-
+# OAuth2 password bearer scheme for token retrieval
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
 
@@ -28,7 +31,7 @@ def verify_password(plain_password, hashed_password):
 def get_password_hash(password):
     return pwd_context.hash(password)
 
-
+ # Authenticate a user based on credentials and password
 def authenticate_user(db: Session, credentials: str, password: str):
     user = user_crud_service.get_user_by_email_or_username(db, credentials)
     if not user:
