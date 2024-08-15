@@ -10,6 +10,7 @@ from app.database import get_db
 movie_router = APIRouter()
 
 
+# Endpoint to get a list of movies
 @movie_router.get("/", status_code=200, response_model=List[schemas.Movie])
 async def get_movies(db: Session = Depends(get_db), offset: int = 0, limit: int = 10):
     movies = movie_crud_service.get_movies(
@@ -20,6 +21,7 @@ async def get_movies(db: Session = Depends(get_db), offset: int = 0, limit: int 
     return movies
 
 
+# Endpoint to get a movie by its ID
 @movie_router.get("/{movie_id}", status_code=200, response_model=schemas.Movie)
 async def get_movie_by_id(movie_id: str, db: Session = Depends(get_db)):
     movie = movie_crud_service.get_movie_by_id(db, movie_id)
@@ -30,6 +32,7 @@ async def get_movie_by_id(movie_id: str, db: Session = Depends(get_db)):
     return movie
 
 
+# Endpoint to get movies by genre
 @movie_router.get("/genre/{genre}", status_code=200, response_model=List[schemas.Movie])
 async def get_movie_by_genre(genre: str, db: Session = Depends(get_db), offset: int = 0, limit: int = 10):
     movie = movie_crud_service.get_movie_by_genre(db, genre, offset, limit)
@@ -39,6 +42,7 @@ async def get_movie_by_genre(genre: str, db: Session = Depends(get_db), offset: 
     return movie
 
 
+# Endpoint to get movies by title
 @movie_router.get("/title/{movie_title}", status_code=200, response_model=List[schemas.Movie])
 async def get_movie_by_title(movie_title: str, db: Session = Depends(get_db), offset: int = 0, limit: int = 10):
     movie = movie_crud_service.get_movie_by_title(db, movie_title, offset, limit)
@@ -49,6 +53,7 @@ async def get_movie_by_title(movie_title: str, db: Session = Depends(get_db), of
     return movie
 
 
+# Endpoint to create a new movie
 @movie_router.post('/', status_code=201, response_model=schemas.Movie)
 async def list_movie(payload: schemas.MovieCreate, current_user: schemas.User = Depends(get_current_user), db: Session = Depends(get_db)):
     movie = movie_crud_service.create_movie(
@@ -59,6 +64,7 @@ async def list_movie(payload: schemas.MovieCreate, current_user: schemas.User = 
     return movie
 
 
+# Endpoint to update a movie by ID
 @movie_router.put('/{movie_id}', status_code=200, response_model=schemas.Movie)
 async def update_movie(movie_id: int, payload: schemas.MovieUpdate, current_user: schemas.User = Depends(get_current_user), db: Session = Depends(get_db)):
     db_movie = movie_crud_service.get_movie_by_id(db, movie_id=movie_id)
@@ -73,6 +79,7 @@ async def update_movie(movie_id: int, payload: schemas.MovieUpdate, current_user
     return movie
 
 
+# Endpoint to delete a movie by ID
 @movie_router.delete("/{movie_id}", status_code=200)
 async def delete_movie(movie_id: int, current_user: schemas.User = Depends(get_current_user), db: Session = Depends(get_db)):
     movie = movie_crud_service.get_movie_by_id(db, movie_id)
