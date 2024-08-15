@@ -15,7 +15,7 @@ class User(Base):
     hashed_password = Column(String, nullable=False)
     created_at = Column(DateTime(timezone=True), nullable=False,
                         server_default=text('CURRENT_TIMESTAMP'))
-
+# Relationships
     movies = relationship("Movie", back_populates="owner")
     ratings = relationship('Rating', back_populates='user')
     comments = relationship('Comment', back_populates='author')
@@ -33,7 +33,7 @@ class Movie(Base):
     user_id = Column(Integer, ForeignKey("users.id"))
     created_at = Column(DateTime(timezone=True), nullable=False,
                         server_default=text('CURRENT_TIMESTAMP'))
-
+# Relationships
     owner = relationship("User", back_populates="movies")
     ratings = relationship("Rating", back_populates="movie")
     comments = relationship("Comment", back_populates="movie")
@@ -49,7 +49,7 @@ class Rating(Base):
     rating_value = Column(Integer)
     created_at = Column(DateTime(timezone=True), nullable=False,
                         server_default=text('CURRENT_TIMESTAMP'))
-
+# Relationships
     user = relationship('User', back_populates='ratings')
     movie = relationship('Movie', back_populates='ratings')
 
@@ -65,7 +65,7 @@ class Comment(Base):
     parent_id = Column(Integer, ForeignKey("comments.id"), nullable=True)
     created_at = Column(DateTime(timezone=True), nullable=False,
                         server_default=text('CURRENT_TIMESTAMP'))
-
+# Relationships
     author = relationship('User', back_populates='comments')
     movie = relationship('Movie', back_populates='comments')
     replies = relationship('Comment', backref='parent', remote_side=[id])
