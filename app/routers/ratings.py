@@ -70,7 +70,7 @@ async def rate_movie(movie_id: int, rating: schemas.RatingCreate, current_user: 
 
     db_rating = rating_crud_service.get_rating(db, user_id=current_user.id, movie_id=movie_id)
     
-    # Check if user has already rated movie
+    # Check if user has already rated movie, if true then update existing ratings
     if db_rating is not None:
         logger.warning("User trying to rate an already rated movie...")
         raise HTTPException(status.HTTP_409_CONFLICT, detail="You have already rated movie. Update existing rating")
