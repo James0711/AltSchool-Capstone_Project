@@ -107,5 +107,6 @@ async def delete_rating(rating_id: int, db: Session = Depends(get_db), current_u
     if rating.user_id != current_user.id:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authorized")
 
+
     rating_crud_service.delete_rating(db, rating_id=rating_id)
     return {"message": "Successful"}
