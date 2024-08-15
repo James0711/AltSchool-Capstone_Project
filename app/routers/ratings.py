@@ -59,8 +59,6 @@ async def get_movie_avg_rating(movie_id: int, db: Session = Depends(get_db)):
 
     return {"message": "successful", "data": data}
 
-    
-    
 
 @rating_router.post('/{movie_id}', status_code=201, response_model=schemas.Rating)
 async def rate_movie(movie_id: int, rating: schemas.RatingCreate, current_user: schemas.User = Depends(get_current_user), db: Session = Depends(get_db)):
