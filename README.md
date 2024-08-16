@@ -65,8 +65,8 @@ Open your browser and go to ... to see the interactive API documentation.
 1. **Clone the repository**:
 
    ```sh
-   git clone https://github.com/James0711/AltSchool-Capstone_Project.git
-   cd AltSchool-Capstone_Project
+   git clone https://github.com/James0711/altSchool-Capstone_Project.git
+   cd altSchool-Capstone_Project
    ``` 
 
 2. **Install the dependencies**:
