@@ -25,7 +25,7 @@ logger.info('API is starting...')
 # Root route
 @app.get('/')
 async def index():
-    return {'message': 'Welcome to Movie API'}
+    return {'message': 'Welcome! This is a Movie_app API'}
 
 # Include routers for different resources
 app.include_router(user_router, prefix="/users", tags=["Users"])
