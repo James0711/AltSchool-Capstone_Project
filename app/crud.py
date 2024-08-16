@@ -6,23 +6,20 @@ import app.models as models
 import app.schemas as schemas
 
 # User CRUD Operations
-
-
 class UserCRUDService:
 
     @staticmethod
-    def create_user(db: Session, user: schemas.UserCreate, hashed_password: str):
-        db_user = models.User(
-            email=user.email,
-            username=user.username,
-            full_name=user.full_name,
+    def create_user(db: Session, user_data: schemas.UserCreate, hashed_password: str):
+        new_user = models.User(
+            email=user_data.email,
+            username=user_data.username,
+            full_name=user_data.full_name,
             hashed_password=hashed_password
         )
-
-        db.add(db_user)
+        db.add(new_user)
         db.commit()
-        db.refresh(db_user)
-        return db_user
+        db.refresh(new_user)
+        return new_user
 
     @staticmethod
     def get_users(db: Session, offset: int = 0, limit: int = 10):
@@ -42,54 +39,43 @@ class UserCRUDService:
 
     @staticmethod
     def get_user_by_email_or_username(db: Session, credentials: str):
-        user = user_crud_service.get_user_by_email(db, credentials)
-        if not user:
-            user = user_crud_service.get_user_by_username(db, credentials)
-        if not user:
-            return None
+        user = UserCRUDService.get_user_by_email(db, credentials) or \
+               UserCRUDService.get_user_by_username(db, credentials)
         return user
 
     @staticmethod
-    def update_user(db: Session, user_id: int, user_payload: schemas.UserUpdate):
-        user = user_crud_service.get_user_by_id(db, user_id)
+    def update_user(db: Session, user_id: int, user_updates: schemas.UserUpdate):
+        user = UserCRUDService.get_user_by_id(db, user_id)
         if not user:
             return None
 
-        user_payload_dict = user_payload.model_dump(exclude_unset=True)
-
-        for key, value in user_payload_dict.items():
+        updates_dict = user_updates.model_dump(exclude_unset=True)
+        for key, value in updates_dict.items():
             setattr(user, key, value)
 
         db.add(user)
         db.commit()
         db.refresh(user)
-
         return user
 
     @staticmethod
     def delete_user(db: Session, user_id: int):
-        user = user_crud_service.get_user_by_id(db, user_id)
-
-        db.delete(user)
-        db.commit()
-
+        user = UserCRUDService.get_user_by_id(db, user_id)
+        if user:
+            db.delete(user)
+            db.commit()
         return None
 
-
 # Movies CRUD Operations
-
 class MovieCRUDService:
 
     @staticmethod
-    def create_movie(db: Session, movie: schemas.MovieCreate, user_id: int):
-        db_movie = models.Movie(
-            **movie.model_dump(),
-            user_id=user_id
-        )
-        db.add(db_movie)
+    def create_movie(db: Session, movie_data: schemas.MovieCreate, user_id: int):
+        new_movie = models.Movie(**movie_data.model_dump(), user_id=user_id)
+        db.add(new_movie)
         db.commit()
-        db.refresh(db_movie)
-        return db_movie
+        db.refresh(new_movie)
+        return new_movie
 
     @staticmethod
     def get_movies(db: Session, offset: int = 0, limit: int = 10):
@@ -108,15 +94,14 @@ class MovieCRUDService:
         return db.query(models.Movie).filter(models.Movie.genre == genre).offset(offset).limit(limit).all()
 
     @staticmethod
-    def update_movie(db: Session, movie_payload: schemas.MovieUpdate, movie_id: int):
-        movie = movie_crud_service.get_movie_by_id(db, movie_id)
+    def update_movie(db: Session, movie_id: int, movie_updates: schemas.MovieUpdate):
+        movie = MovieCRUDService.get_movie_by_id(db, movie_id)
         if not movie:
             return None
 
-        movie_payload_dict = movie_payload.model_dump(exclude_unset=True)
-
-        for k, v in movie_payload_dict.items():
-            setattr(movie, k, v)
+        updates_dict = movie_updates.model_dump(exclude_unset=True)
+        for key, value in updates_dict.items():
+            setattr(movie, key, value)
 
         db.add(movie)
         db.commit()
@@ -124,30 +109,27 @@ class MovieCRUDService:
         return movie
 
     @staticmethod
-    def delete_movie(db: Session, movie_id: int = None):
-        movie = movie_crud_service.get_movie_by_id(db, movie_id)
-
-        db.delete(movie)
-        db.commit()
-
+    def delete_movie(db: Session, movie_id: int):
+        movie = MovieCRUDService.get_movie_by_id(db, movie_id)
+        if movie:
+            db.delete(movie)
+            db.commit()
         return None
 
 # Ratings CRUD Operations
-
 class RatingCRUDService:
 
     @staticmethod
-    def rate_movie_by_id(db: Session, rating: schemas.RatingCreate, user_id: int, movie_id: int):
-        db_rating = models.Rating(
-            **rating.model_dump(),
+    def rate_movie(db: Session, rating_data: schemas.RatingCreate, user_id: int, movie_id: int):
+        new_rating = models.Rating(
+            **rating_data.model_dump(),
             user_id=user_id,
             movie_id=movie_id
         )
-
-        db.add(db_rating)
+        db.add(new_rating)
         db.commit()
-        db.refresh(db_rating)
-        return db_rating
+        db.refresh(new_rating)
+        return new_rating
 
     @staticmethod
     def get_ratings(db: Session, offset: int = 0, limit: int = 10):
@@ -162,44 +144,32 @@ class RatingCRUDService:
         return db.query(models.Rating).filter(models.Rating.id == rating_id).first()
 
     @staticmethod
-    def get_ratings_by_movie_id(db: Session, movie_id: int, offset: int = 0, limit: int = 10):
+    def get_ratings_by_movie(db: Session, movie_id: int, offset: int = 0, limit: int = 10):
         return db.query(models.Rating).filter(models.Rating.movie_id == movie_id).offset(offset).limit(limit).all()
     
     @staticmethod
-    def get_all_ratings_for_a_movie(db: Session, movie_id: int):
+    def get_all_ratings_for_movie(db: Session, movie_id: int):
         return db.query(models.Rating).filter(models.Rating.movie_id == movie_id).all()
-    
+
     @staticmethod
     def aggregate_rating(db: Session, movie_id: int):
-         # Fetch all ratings for the specified movie
-        ratings = rating_crud_service.get_all_ratings_for_a_movie(db, movie_id)
-        
-        # Check if there are any ratings
+        ratings = RatingCRUDService.get_all_ratings_for_movie(db, movie_id)
         if not ratings:
             return 0.0
         
-        # Extract the ratings from the objects
         rating_values = [rating.rating_value for rating in ratings]
-        
-        # Calculate the mean rating using statistics.mean
         mean_rating = statistics.mean(rating_values)
-        
-        avg_rating = round(mean_rating, 2)
-        
-        return avg_rating
-
-
+        return round(mean_rating, 2)
 
     @staticmethod
-    def update_rating(db: Session, rating_payload: schemas.RatingUpdate, rating_id: int):
-        rating = rating_crud_service.get_rating_by_id(db, rating_id)
+    def update_rating(db: Session, rating_id: int, rating_updates: schemas.RatingUpdate):
+        rating = RatingCRUDService.get_rating_by_id(db, rating_id)
         if not rating:
             return None
 
-        rating_payload_dict = rating_payload.model_dump(exclude_unset=True)
-
-        for k, v in rating_payload_dict.items():
-            setattr(rating, k, v)
+        updates_dict = rating_updates.model_dump(exclude_unset=True)
+        for key, value in updates_dict.items():
+            setattr(rating, key, value)
 
         db.add(rating)
         db.commit()
@@ -207,36 +177,30 @@ class RatingCRUDService:
         return rating
 
     @staticmethod
-    def delete_rating(db: Session, rating_id: int = None):
-        rating = rating_crud_service.get_rating_by_id(db, rating_id)
-
-        db.delete(rating)
-        db.commit()
-
+    def delete_rating(db: Session, rating_id: int):
+        rating = RatingCRUDService.get_rating_by_id(db, rating_id)
+        if rating:
+            db.delete(rating)
+            db.commit()
         return None
 
 # Comments CRUD Operations
-
 class CommentCRUDService:
 
     @staticmethod
-    def create_comment(db: Session, comment: schemas.CommentCreate, movie_id: int, user_id: int):
-        db_comment = models.Comment(
-            **comment.model_dump(),
+    def create_comment(db: Session, comment_data: schemas.CommentCreate, movie_id: int, user_id: int):
+        new_comment = models.Comment(
+            **comment_data.model_dump(),
             user_id=user_id,
             movie_id=movie_id
         )
-
-        db.add(db_comment)
+        db.add(new_comment)
         db.commit()
-        db.refresh(db_comment)
-        return db_comment
+        db.refresh(new_comment)
+        return new_comment
 
     @staticmethod
     def get_comments(db: Session, offset: int = 0, limit: int = 10):
-        # Join comments with the reply counts
-
-        # Subquery to count replies
         subquery = (
             db.query(
                 models.Comment.parent_id,
@@ -246,14 +210,12 @@ class CommentCRUDService:
             .subquery()
         )
 
-        # Main query to get comments with reply count and author details
-        comments_with_no_of_replies = (
+        comments_with_replies = (
             db.query(
                 models.Comment,
-                models.User,  # Join the User table [so as to get the author]
+                models.User,
                 func.coalesce(subquery.c.reply_count, 0).label("replies")
             )
-
             .join(models.User, models.Comment.user_id == models.User.id)
             .outerjoin(subquery, models.Comment.id == subquery.c.parent_id)
             .offset(offset)
@@ -261,11 +223,10 @@ class CommentCRUDService:
             .all()
         )
 
-        # The above query ensures that the comments are returned with no. of replies of each comment
-        return comments_with_no_of_replies
+        return comments_with_replies
 
     @staticmethod
-    def get_replies_to_comment(db: Session, parent_id: int, offset: int = 0, limit: int = 10):
+    def get_replies(db: Session, parent_id: int, offset: int = 0, limit: int = 10):
         return db.query(models.Comment).filter(models.Comment.parent_id == parent_id).offset(offset).limit(limit).all()
 
     @staticmethod
@@ -274,7 +235,6 @@ class CommentCRUDService:
 
     @staticmethod
     def get_comment_by_id(db: Session, comment_id: int):
-        # Subquery to count replies
         reply_count_subquery = (
             select(
                 models.Comment.parent_id,
@@ -284,55 +244,50 @@ class CommentCRUDService:
             .subquery()
         )
 
-        # Query to get a specific comment with reply count
         query = (
             select(
                 models.Comment,
-                func.coalesce(reply_count_subquery.c.reply_count,
-                              0).label("replies")
+                func.coalesce(reply_count_subquery.c.reply_count, 0).label("replies")
             )
             .outerjoin(reply_count_subquery, models.Comment.id == reply_count_subquery.c.parent_id)
             .where(models.Comment.id == comment_id)
         )
-        comment_with_no_of_replies = db.execute(query).fetchone()
-
-        # The above query ensures that comment is returned with the no. of replies
-        return comment_with_no_of_replies
+        return db.execute(query).fetchone()
 
     @staticmethod
     def get_comments_by_user(db: Session, user_id: int, offset: int = 0, limit: int = 10):
         return db.query(models.Comment).filter(models.Comment.user_id == user_id).offset(offset).limit(limit).all()
 
     @staticmethod
-    def get_a_comment(db: Session, comment_id: int):
+    def get_comment(db: Session, comment_id: int):
         return db.query(models.Comment).filter(models.Comment.id == comment_id).first()
 
     @staticmethod
-    def reply_comment(comment_id: int, db: Session, comment: schemas.CommentBase, user_id: int):
-        parent_comment = comment_crud_service.get_a_comment(db, comment_id)
+    def reply_to_comment(db: Session, parent_id: int, comment_data: schemas.CommentBase, user_id: int):
+        parent_comment = CommentCRUDService.get_comment(db, parent_id)
         if not parent_comment:
             return None
-        movie_id = parent_comment.movie_id
-        parent_id = parent_comment.id
-
-        # Create a reply using the comment model
+        
         new_comment = models.Comment(
-            **comment.model_dump(), movie_id=movie_id, parent_id=parent_id, user_id=user_id)
-
+            **comment_data.model_dump(),
+            movie_id=parent_comment.movie_id,
+            parent_id=parent_id,
+            user_id=user_id
+        )
         db.add(new_comment)
         db.commit()
         db.refresh(new_comment)
         return new_comment
 
     @staticmethod
-    def update_comment(db: Session, comment_payload: schemas.CommentUpdate, comment_id: int):
-        comment = comment_crud_service.get_a_comment(db, comment_id)
+    def update_comment(db: Session, comment_id: int, comment_updates: schemas.CommentUpdate):
+        comment = CommentCRUDService.get_comment(db, comment_id)
         if not comment:
             return None
-        comment_payload_dict = comment_payload.model_dump(exclude_unset=True)
 
-        for k, v in comment_payload_dict.items():
-            setattr(comment, k, v)
+        updates_dict = comment_updates.model_dump(exclude_unset=True)
+        for key, value in updates_dict.items():
+            setattr(comment, key, value)
 
         db.add(comment)
         db.commit()
@@ -341,14 +296,13 @@ class CommentCRUDService:
 
     @staticmethod
     def delete_comment(db: Session, comment_id: int):
-        comment = comment_crud_service.get_a_comment(db, comment_id)
-
-        db.delete(comment)
-        db.commit()
-
+        comment = CommentCRUDService.get_comment(db, comment_id)
+        if comment:
+            db.delete(comment)
+            db.commit()
         return None
 
-
+# Instantiate CRUD Services
 user_crud_service = UserCRUDService()
 movie_crud_service = MovieCRUDService()
 rating_crud_service = RatingCRUDService()
