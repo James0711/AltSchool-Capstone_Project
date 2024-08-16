@@ -117,6 +117,8 @@ MOVIE_API/
 ├── alembic/      
 ├── app/
 │   ├── __pycache__/
+|   ├── .env
+|   ├── .gitignore
 │   ├── routers/
 │   ├── tests/
 │   ├── config.py
@@ -129,9 +131,6 @@ MOVIE_API/
 │   ├── schemas.py
 │   ├── text.txt
 │   ├── utils.py
-├── .env
-├── .gitignore
-├── alembic.ini
 ├── README.md 
 ├── requirements.txt
 
